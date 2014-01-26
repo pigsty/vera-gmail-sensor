@@ -3,7 +3,7 @@
 	<specVersion>
 	</specVersion>
 	<device>
-		<deviceType>urn:chrisbirkinishaw-me-uk:device:GMailSensor:1</deviceType>
+		<deviceType>urn:chrisbirkinshaw-me-uk:device:GMailSensor:1</deviceType>
 		<friendlyName>GMail Sensor</friendlyName>
 		<staticJson>D_GMailSensor1.json</staticJson>
     	<serviceList>
