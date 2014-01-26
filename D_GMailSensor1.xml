@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<root >
+	<specVersion>
+	</specVersion>
+	<device>
+		<deviceType>urn:chrisbirkinishaw-me-uk:device:GMailSensor:1</deviceType>
+		<friendlyName>GMail Sensor</friendlyName>
+		<staticJson>D_GMailSensor1.json</staticJson>
+    	<serviceList>
+    	  <service>
+    	    <serviceType>urn:schemas-micasaverde-com:service:SecuritySensor:1</serviceType>
+    	    <serviceId>urn:micasaverde-com:serviceId:SecuritySensor1</serviceId>
+    	    <SCPDURL>S_SecuritySensor1.xml</SCPDURL>
+    	  </service>
+    	  <service>
+    	    <serviceType>urn:schemas-micasaverde-com:service:HaDevice:1</serviceType>
+    	    <serviceId>urn:micasaverde-com:serviceId:HaDevice1</serviceId>
+    	    <SCPDURL>S_HaDevice1.xml</SCPDURL>
+    	  </service>
+    	  <service>
+    	    <serviceType>urn:chrisbirkinshaw-me-uk:service:GMailSensor:1</serviceType>
+    	    <serviceId>urn:chrisbirkinshaw-me-uk:serviceId:GMailSensor1</serviceId>
+    	    <SCPDURL>S_GMailSensor1.xml</SCPDURL>
+    	  </service>
+    	</serviceList>
+    	<implementationList>
+      		<implementationFile>I_GMailSensor1.xml</implementationFile>
+    	</implementationList>
+	</device>
+</root>

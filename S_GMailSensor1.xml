@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<scpd xmlns="urn:schemas-upnp-org:service-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <serviceStateTable>
+    <stateVariable>
+      <name>LastOn</name>
+      <dataType>i4</dataType>
+      <shortCode>laston</shortCode>
+    </stateVariable>
+    <stateVariable>
+      <name>LastOff</name>
+      <dataType>i4</dataType>
+      <shortCode>lastoff</shortCode>
+    </stateVariable>
+  </serviceStateTable>
+  <actionList>
+  </actionList>
+</scpd>
+

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<implementation >
+	<functions>
+
+		local DEBUG_MODE = false
+		local DEFAULT_SID = "urn:chrisbirkinshaw-me-uk:serviceId:GMailSensor1"
+		local SECURITY_SID = "urn:micasaverde-com:serviceId:SecuritySensor1"
+		local MCV_HA_DEVICE_SID= "urn:micasaverde-com:serviceId:HaDevice1"
+		
+		DEFAULT_POLL_INTERVAL = 60 
+		
+		local username = nil
+		local password = nil
+		local onLabel = nil
+		local offLabel = nil
+
+		local function log(text, level)
+        	luup.log("GMailSensor: " .. text, (level or 1))
+    	end
+
+		local function debug(text)
+         	if (DEBUG_MODE == true) then
+              	log("debug: " .. text, 50)
+           	end
+        end
+		
+		
+		local function check_config_variable(name)
+			local value = luup.variable_get(DEFAULT_SID, name, lul_device)
+			if value == nil then
+				debug("Initialising variable name = " .. name)
+				luup.variable_set(DEFAULT_SID, name, "", lul_device)
+			elseif value == "" then
+				log("Config variable " .. name .. " is blank", 2)
+			else
+				return true
+			end
+			return false
+		end	
+		
+		local function getLabel(label)
+			debug("Getting GMail label" .. label)
+			local url = "https://" .. username .. ":" .. password .. "@" .. "mail.google.com/mail/feed/atom/" .. label		
+			debug("Calling URL:  " .. url)
+			
+			local status, data = luup.inet.wget(url)
+			if (data) then
+				debug("Received response " .. data)
+			else
+				log("Received empty response")
+			end
+		
+			local latest = 0
+			for year, month, day, hour, min, sec in string.gmatch(data, "&lt;issued&gt;(%d%d%d%d)%-(%d%d)%-(%d%d)T(%d%d):(%d%d):(%d%d)Z&lt;/issued&gt;") do
+				debug("Found timestamp")
+				local t = {}
+				t.year = year
+				t.month = month
+				t.day = day
+				t.hour = hour
+				t.min = min
+				t.sec = sec
+				local timestamp = os.time(t)
+				local display = os.date('%Y-%m-%d %H:%M:%S', timestamp)
+				debug("Converted timestamp to " .. display)
+				if timestamp > latest then
+					latest = timestamp
+				end
+			end
+			debug("Latest timestamp is " .. os.date('%Y-%m-%d %H:%M:%S', latest))
+			return latest
+		end
+
+		function gmailPoller()
+			log("Polling GMail Atom Feed", 50)
+			
+			luup.call_timer("gmailPoller", 1, DEFAULT_POLL_INTERVAL, "", "")
+			
+			if (username ~= "" and password ~= "" and onLabel ~= "" and offLabel ~= "") then
+				local latestOn = getLabel(onLabel)
+				local latestOff = getLabel(offLabel)
+				local lastOn = luup.variable_get(DEFAULT_SID, "LastOn", lul_device)
+				local lastOn = luup.variable_get(DEFAULT_SID, "LastOff", lul_device)
+				
+				if (lastOn ~= latestOn) then
+					debug("Updating LastOn device variable")
+					luup.variable_set(DEFAULT_SID, "LastOn", latestOn, lul_device)
+				end
+				if (lastOff ~= latestOff) then
+					debug("Updating LastOff device variable")
+					luup.variable_set(DEFAULT_SID, "LastOff", latestOff, lul_device)
+				end
+				if (lastOn ~= latestOn and lastOff ~= latestOff) then
+					luup.variable_set(MCV_HA_DEVICE_SID, "LastUpdate", os.time(), lul_device)
+				end
+				
+				if (latestOn > latestOff) then 
+					debug("Setting on/tripped")
+					luup.variable_set(SECURITY_SID, "Tripped", "1", lul_device)
+				else
+					debug("Setting off/untripped")
+					luup.variable_set(SECURITY_SID, "Tripped", "0", lul_device)
+				end
+			else
+				log("Configuration error")
+			end
+		end
+		
+		function gmailSensorStartup(lul_device)	
+			log("GMail Sensor startup", 50)
+			
+			check_config_variable("Username")
+			check_config_variable("Password")
+			check_config_variable("OnLabel")
+			check_config_variable("OffLabel")
+
+			username = luup.variable_get(DEFAULT_SID, "Username", lul_device)
+			password = luup.variable_get(DEFAULT_SID, "Password", lul_device)
+			onLabel = luup.variable_get(DEFAULT_SID, "OnLabel", lul_device)
+			offLabel = luup.variable_get(DEFAULT_SID, "OffLabel", lul_device)
+			
+			gmailPoller()
+		end
+
+	</functions>
+
+	<startup>gmailSensorStartup</startup>
+	
+	<actionList>
+		<action>
+<serviceId>urn:micasaverde-com:serviceId:SecuritySensor1</serviceId>
+<name>SetArmed</name>
+<run>
+luup.variable_set(SECURITY_SID, "Armed", lul_settings.newArmedValue, lul_device) return 4, 0
+</run>
+</action>
+	</actionList>
+</implementation>
